@@ -71,28 +71,30 @@ function AuthPage() {
   }
 
   return (
-    <div className="grid min-h-screen lg:grid-cols-2">
-      <div className="hidden flex-col justify-between bg-sidebar p-10 text-sidebar-foreground lg:flex">
+    <div className="grid min-h-screen gap-8 bg-background p-6 lg:grid-cols-[1.1fr_0.9fr] lg:p-10">
+      <div className="panel hidden flex-col justify-between p-10 text-sidebar-foreground lg:flex">
         <div className="flex items-center gap-3">
-          <div className="grid size-9 place-items-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
+          <div className="grid size-11 place-items-center rounded-full bg-sidebar-primary text-sidebar-primary-foreground shadow-raised">
             <Factory className="size-5" />
           </div>
-          <span className="font-semibold">ระบบสรุปข้อมูลการผลิต</span>
+          <span className="font-serif text-xl text-primary">ระบบสรุปข้อมูลการผลิต</span>
         </div>
         <div>
-          <h2 className="text-3xl leading-snug font-bold text-balance">
+          <h2 className="max-w-md text-[34px] leading-[42px] text-primary text-balance">
             ข้อมูลการผลิตทุกไลน์ สรุปพร้อมใช้ทุกเช้า
           </h2>
-          <p className="mt-3 max-w-md text-sm opacity-75">
+          <p className="mt-4 max-w-md text-sm leading-[22px] text-muted-foreground">
             ติดตามผลผลิต เป้าหมาย Yield ของเสีย และเวลาหยุดเครื่อง แบบรวมศูนย์
           </p>
         </div>
-        <p className="text-xs opacity-60">ข้อมูลและบัญชีเก็บเฉพาะในเบราว์เซอร์นี้</p>
+        <p className="font-mono text-[13px] text-muted-foreground">
+          ข้อมูลและบัญชีเก็บเฉพาะในเบราว์เซอร์นี้
+        </p>
       </div>
 
       <div className="flex items-center justify-center p-6">
-        <div className="w-full max-w-sm">
-          <h1 className="text-2xl font-semibold">ยินดีต้อนรับ</h1>
+        <div className="panel w-full max-w-sm p-6">
+          <h1 className="text-[34px] leading-[42px] text-primary">ยินดีต้อนรับ</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             โหมด Local Storage สำหรับใช้งานก่อนเชื่อมต่อฐานข้อมูลจริง
           </p>

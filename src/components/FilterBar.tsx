@@ -30,7 +30,7 @@ export function FilterBar({
   );
 
   return (
-    <div className="panel flex flex-wrap items-end gap-3 p-4">
+    <div className="panel flex flex-wrap items-end gap-4 p-6">
       <Field label="ตั้งแต่วันที่">
         <Input
           type="date"
@@ -65,10 +65,7 @@ export function FilterBar({
       )}
 
       <Field label="โรงงาน">
-        <Select
-          value={filters.plantId}
-          onValueChange={(v) => set({ plantId: v, lineId: ALL })}
-        >
+        <Select value={filters.plantId} onValueChange={(v) => set({ plantId: v, lineId: ALL })}>
           <SelectTrigger className="w-44">
             <SelectValue />
           </SelectTrigger>
@@ -127,7 +124,7 @@ export function FilterBar({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-xs text-muted-foreground">{label}</Label>
+      <Label className="text-sm font-medium text-primary">{label}</Label>
       {children}
     </div>
   );

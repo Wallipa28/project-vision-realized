@@ -53,24 +53,24 @@ export function AppShell({
   const items = NAV.filter((n) => !("adminOnly" in n && n.adminOnly) || isAdmin);
 
   return (
-    <div className="min-h-screen bg-background lg:grid lg:grid-cols-[16rem_1fr]">
+    <div className="min-h-screen bg-background lg:grid lg:grid-cols-[17rem_1fr]">
       <aside
         className={cn(
           "fixed inset-y-0 left-0 z-40 w-64 flex-col bg-sidebar text-sidebar-foreground transition-transform lg:static lg:flex lg:translate-x-0",
           open ? "flex translate-x-0" : "hidden -translate-x-full",
         )}
       >
-        <div className="flex items-center gap-3 border-b border-sidebar-border px-5 py-4">
-          <div className="grid size-9 place-items-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
+        <div className="m-4 flex items-center gap-3 rounded-lg bg-card px-4 py-4 shadow-raised">
+          <div className="grid size-10 place-items-center rounded-full bg-sidebar-primary text-sidebar-primary-foreground shadow-raised">
             <Factory className="size-5" />
           </div>
           <div className="leading-tight">
-            <p className="text-sm font-semibold">ระบบสรุปการผลิต</p>
+            <p className="font-serif text-lg leading-6">ระบบสรุปการผลิต</p>
             <p className="text-xs opacity-70">Production Intelligence</p>
           </div>
         </div>
 
-        <nav className="flex-1 space-y-1 p-3">
+        <nav className="flex-1 space-y-2 p-4 pt-1">
           {items.map((item) => {
             const active = pathname.startsWith(item.to);
             return (
@@ -79,10 +79,10 @@ export function AppShell({
                 to={item.to}
                 onClick={() => setOpen(false)}
                 className={cn(
-                  "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
+                  "flex h-[42px] items-center gap-3 rounded-md px-3 text-sm transition-all",
                   active
-                    ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium"
-                    : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium shadow-raised"
+                    : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-raised",
                 )}
               >
                 <item.icon className="size-4" />
@@ -92,8 +92,8 @@ export function AppShell({
           })}
         </nav>
 
-        <div className="border-t border-sidebar-border p-4 text-sm">
-          <p className="font-medium">{name}</p>
+        <div className="m-4 rounded-lg bg-secondary p-4 text-sm shadow-inset">
+          <p className="font-medium text-primary">{name}</p>
           <p className="truncate text-xs opacity-70">{email}</p>
           <p className="mt-1 text-xs opacity-70">
             สิทธิ์: {roles.map((r) => ROLE_LABEL[r]).join(", ") || "-"}
@@ -105,7 +105,7 @@ export function AppShell({
       </aside>
 
       <div className="flex min-w-0 flex-col">
-        <header className="sticky top-0 z-30 flex flex-wrap items-center gap-3 border-b bg-card/90 px-4 py-3 backdrop-blur lg:px-8">
+        <header className="sticky top-0 z-30 flex flex-wrap items-center gap-3 bg-background/90 px-4 py-4 backdrop-blur lg:px-8">
           <Button
             variant="ghost"
             size="icon"
@@ -116,12 +116,12 @@ export function AppShell({
             {open ? <X className="size-5" /> : <Menu className="size-5" />}
           </Button>
           <div className="min-w-0 flex-1">
-            <h1 className="truncate text-lg font-semibold">{title}</h1>
+            <h1 className="truncate text-[26px] leading-[34px] text-primary">{title}</h1>
             {description && <p className="truncate text-xs text-muted-foreground">{description}</p>}
           </div>
           <div className="flex items-center gap-2">{actions}</div>
         </header>
-        <main className="min-w-0 flex-1 space-y-6 p-4 lg:p-8">{children}</main>
+        <main className="min-w-0 flex-1 space-y-8 p-4 pt-2 lg:p-8 lg:pt-4">{children}</main>
       </div>
     </div>
   );

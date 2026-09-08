@@ -24,12 +24,12 @@ export function KpiCard({
   }[tone];
 
   return (
-    <div className="panel p-4">
+    <div className="panel p-6">
       <div className="flex items-start justify-between gap-2">
-        <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{label}</p>
+        <p className="text-sm font-medium text-primary">{label}</p>
         {icon && <span className="text-muted-foreground">{icon}</span>}
       </div>
-      <p className={cn("num mt-2 text-2xl font-semibold", toneClass)}>
+      <p className={cn("num mt-3 font-mono text-2xl", toneClass)}>
         {value}
         {unit && <span className="ml-1 text-sm font-normal text-muted-foreground">{unit}</span>}
       </p>
