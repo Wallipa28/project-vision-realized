@@ -14,16 +14,361 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      defect_records: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          defect_type: string
+          id: string
+          line_id: string
+          note: string | null
+          prod_date: string
+          product_id: string
+          qty: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          defect_type: string
+          id?: string
+          line_id: string
+          note?: string | null
+          prod_date: string
+          product_id: string
+          qty?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          defect_type?: string
+          id?: string
+          line_id?: string
+          note?: string | null
+          prod_date?: string
+          product_id?: string
+          qty?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "defect_records_line_id_fkey"
+            columns: ["line_id"]
+            isOneToOne: false
+            referencedRelation: "production_lines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "defect_records_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      downtime_records: {
+        Row: {
+          category: string
+          cause: string | null
+          created_at: string
+          created_by: string | null
+          duration_min: number
+          end_time: string
+          id: string
+          line_id: string
+          machine_id: string | null
+          note: string | null
+          prod_date: string
+          start_time: string
+        }
+        Insert: {
+          category: string
+          cause?: string | null
+          created_at?: string
+          created_by?: string | null
+          duration_min?: number
+          end_time: string
+          id?: string
+          line_id: string
+          machine_id?: string | null
+          note?: string | null
+          prod_date: string
+          start_time: string
+        }
+        Update: {
+          category?: string
+          cause?: string | null
+          created_at?: string
+          created_by?: string | null
+          duration_min?: number
+          end_time?: string
+          id?: string
+          line_id?: string
+          machine_id?: string | null
+          note?: string | null
+          prod_date?: string
+          start_time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "downtime_records_line_id_fkey"
+            columns: ["line_id"]
+            isOneToOne: false
+            referencedRelation: "production_lines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "downtime_records_machine_id_fkey"
+            columns: ["machine_id"]
+            isOneToOne: false
+            referencedRelation: "machines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      machines: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          line_id: string
+          name: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          line_id: string
+          name: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          line_id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "machines_line_id_fkey"
+            columns: ["line_id"]
+            isOneToOne: false
+            referencedRelation: "production_lines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plants: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      production_lines: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          name: string
+          plant_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          name: string
+          plant_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          name?: string
+          plant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "production_lines_plant_id_fkey"
+            columns: ["plant_id"]
+            isOneToOne: false
+            referencedRelation: "plants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      production_records: {
+        Row: {
+          actual_qty: number
+          created_at: string
+          created_by: string | null
+          defect_qty: number
+          good_qty: number
+          id: string
+          line_id: string
+          machine_id: string | null
+          plan_qty: number
+          plant_id: string
+          prod_date: string
+          product_id: string
+          reject_qty: number
+          shift: string
+        }
+        Insert: {
+          actual_qty?: number
+          created_at?: string
+          created_by?: string | null
+          defect_qty?: number
+          good_qty?: number
+          id?: string
+          line_id: string
+          machine_id?: string | null
+          plan_qty?: number
+          plant_id: string
+          prod_date: string
+          product_id: string
+          reject_qty?: number
+          shift?: string
+        }
+        Update: {
+          actual_qty?: number
+          created_at?: string
+          created_by?: string | null
+          defect_qty?: number
+          good_qty?: number
+          id?: string
+          line_id?: string
+          machine_id?: string | null
+          plan_qty?: number
+          plant_id?: string
+          prod_date?: string
+          product_id?: string
+          reject_qty?: number
+          shift?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "production_records_line_id_fkey"
+            columns: ["line_id"]
+            isOneToOne: false
+            referencedRelation: "production_lines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_records_machine_id_fkey"
+            columns: ["machine_id"]
+            isOneToOne: false
+            referencedRelation: "machines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_records_plant_id_fkey"
+            columns: ["plant_id"]
+            isOneToOne: false
+            referencedRelation: "plants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_records_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          name: string
+          unit: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          name: string
+          unit?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          name?: string
+          unit?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      can_edit: { Args: { _user_id: string }; Returns: boolean }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "manager" | "supervisor" | "quality" | "viewer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +495,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "manager", "supervisor", "quality", "viewer"],
+    },
   },
 } as const
