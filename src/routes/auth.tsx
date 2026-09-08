@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Factory, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
+import { getLocalSession, signInLocal, signUpLocal } from "@/lib/local-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,54 +25,48 @@ function AuthPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/dashboard", replace: true });
-    });
+    if (getLocalSession()) navigate({ to: "/dashboard", replace: true });
   }, [navigate]);
 
   async function signIn(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await signInLocal(email);
     setLoading(false);
-    if (error) return toast.error("เข้าสู่ระบบไม่สำเร็จ: " + error.message);
+    if (error) {
+      toast.error("เข้าสู่ระบบไม่สำเร็จ: " + error.message);
+      return;
+    }
     navigate({ to: "/dashboard", replace: true });
   }
 
   async function signUp(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: window.location.origin,
-        data: { full_name: fullName },
-      },
-    });
+    const { session, error } = await signUpLocal(email, fullName);
     setLoading(false);
-    if (error) return toast.error("สมัครใช้งานไม่สำเร็จ: " + error.message);
-    if (data.session) {
+    if (error) {
+      toast.error("สมัครใช้งานไม่สำเร็จ: " + error.message);
+      return;
+    }
+    if (session) {
+      toast.success("สมัครสำเร็จ ข้อมูลบัญชีถูกเก็บใน Local Storage แล้ว");
       navigate({ to: "/dashboard", replace: true });
       return;
     }
-    toast.success("สมัครสำเร็จ กรุณาตรวจอีเมลเพื่อยืนยันบัญชี");
   }
 
-  async function googleSignIn() {
+  async function demoSignIn() {
     setLoading(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (result.error) {
-      setLoading(false);
-      return toast.error("เข้าสู่ระบบด้วย Google ไม่สำเร็จ");
+    const { error } = await signInLocal("demo@local.test");
+    setLoading(false);
+    if (error) {
+      toast.error("เข้าสู่ระบบ Local ไม่สำเร็จ");
+      return;
     }
-    if (result.redirected) return;
     navigate({ to: "/dashboard", replace: true });
   }
 
@@ -94,13 +87,15 @@ function AuthPage() {
             ติดตามผลผลิต เป้าหมาย Yield ของเสีย และเวลาหยุดเครื่อง แบบรวมศูนย์
           </p>
         </div>
-        <p className="text-xs opacity-60">ผู้ใช้ใหม่จะได้สิทธิ์ "ผู้ชม" โดยอัตโนมัติ</p>
+        <p className="text-xs opacity-60">ข้อมูลและบัญชีเก็บเฉพาะในเบราว์เซอร์นี้</p>
       </div>
 
       <div className="flex items-center justify-center p-6">
         <div className="w-full max-w-sm">
           <h1 className="text-2xl font-semibold">ยินดีต้อนรับ</h1>
-          <p className="mt-1 text-sm text-muted-foreground">เข้าสู่ระบบเพื่อดูรายงานการผลิต</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            โหมด Local Storage สำหรับใช้งานก่อนเชื่อมต่อฐานข้อมูลจริง
+          </p>
 
           <Tabs defaultValue="signin" className="mt-6">
             <TabsList className="grid w-full grid-cols-2">
@@ -118,16 +113,6 @@ function AuthPage() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="password">รหัสผ่าน</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
                   />
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
@@ -152,17 +137,6 @@ function AuthPage() {
                     onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="password2">รหัสผ่าน</Label>
-                  <Input
-                    id="password2"
-                    type="password"
-                    required
-                    minLength={6}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading && <Loader2 className="size-4 animate-spin" />} สมัครใช้งาน
                 </Button>
@@ -171,10 +145,11 @@ function AuthPage() {
           </Tabs>
 
           <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
-            <span className="h-px flex-1 bg-border" /> หรือ <span className="h-px flex-1 bg-border" />
+            <span className="h-px flex-1 bg-border" /> หรือ{" "}
+            <span className="h-px flex-1 bg-border" />
           </div>
-          <Button variant="outline" className="w-full" onClick={googleSignIn} disabled={loading}>
-            เข้าสู่ระบบด้วย Google
+          <Button variant="outline" className="w-full" onClick={demoSignIn} disabled={loading}>
+            เข้าใช้งานโหมด Local ทันที
           </Button>
         </div>
       </div>

@@ -12,7 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { subscribeLocalAuth } from "@/lib/local-auth";
 
 function NotFoundComponent() {
   return (
@@ -46,7 +46,9 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">โหลดหน้านี้ไม่สำเร็จ</h1>
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">
+          โหลดหน้านี้ไม่สำเร็จ
+        </h1>
         <p className="mt-2 text-sm text-muted-foreground">
           เกิดข้อผิดพลาดบางอย่าง ลองโหลดใหม่อีกครั้งหรือกลับหน้าแรก
         </p>
@@ -121,12 +123,10 @@ function RootComponent() {
   const router = useRouter();
 
   useEffect(() => {
-    const { data } = supabase.auth.onAuthStateChange((event) => {
-      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+    return subscribeLocalAuth(() => {
       router.invalidate();
-      if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
+      queryClient.invalidateQueries();
     });
-    return () => data.subscription.unsubscribe();
   }, [router, queryClient]);
 
   return (

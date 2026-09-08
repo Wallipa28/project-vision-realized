@@ -33,9 +33,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/lib/auth";
-import { defaultFilters, fmt, summarize, toISO, useMasterData, useProduction } from "@/lib/data";
+import {
+  addLocalProductionRecord,
+  defaultFilters,
+  fmt,
+  summarize,
+  toISO,
+  useMasterData,
+  useProduction,
+} from "@/lib/data";
 
 export const Route = createFileRoute("/_authenticated/production")({
   head: () => ({
@@ -49,25 +56,26 @@ export const Route = createFileRoute("/_authenticated/production")({
   component: ProductionPage,
 });
 
+function findName(list: { id: string; name: string }[] | undefined, id: string | null) {
+  return list?.find((item) => item.id === id)?.name ?? "-";
+}
+
 function ProductionPage() {
   const [filters, setFilters] = useState(defaultFilters());
   const master = useMasterData();
   const prod = useProduction(filters);
   const { canEdit } = useCurrentUser();
-  const rows = prod.data ?? [];
+  const rows = useMemo(() => prod.data ?? [], [prod.data]);
   const k = summarize(rows);
-
-  const name = (list: { id: string; name: string }[] | undefined, id: string | null) =>
-    list?.find((x) => x.id === id)?.name ?? "-";
 
   const tableRows = useMemo(
     () =>
       rows.map((r) => ({
         วันที่: r.prod_date,
         กะ: r.shift,
-        ไลน์ผลิต: name(master.data?.lines, r.line_id),
-        เครื่องจักร: name(master.data?.machines, r.machine_id),
-        สินค้า: name(master.data?.products, r.product_id),
+        ไลน์ผลิต: findName(master.data?.lines, r.line_id),
+        เครื่องจักร: findName(master.data?.machines, r.machine_id),
+        สินค้า: findName(master.data?.products, r.product_id),
         แผน: Number(r.plan_qty),
         ผลจริง: Number(r.actual_qty),
         ของดี: Number(r.good_qty),
@@ -77,7 +85,6 @@ function ProductionPage() {
           ? Number(((Number(r.actual_qty) / Number(r.plan_qty)) * 100).toFixed(1))
           : 0,
       })),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [rows, master.data],
   );
 
@@ -103,7 +110,12 @@ function ProductionPage() {
           unit="%"
           tone={k.achievement >= 95 ? "good" : k.achievement >= 85 ? "warn" : "bad"}
         />
-        <KpiCard label="ส่วนต่างจากแผน" value={fmt(k.actual - k.plan)} unit="ชิ้น" tone={k.actual >= k.plan ? "good" : "bad"} />
+        <KpiCard
+          label="ส่วนต่างจากแผน"
+          value={fmt(k.actual - k.plan)}
+          unit="ชิ้น"
+          tone={k.actual >= k.plan ? "good" : "bad"}
+        />
       </div>
 
       <div className="panel overflow-hidden">
@@ -143,13 +155,15 @@ function ProductionPage() {
                 </TableRow>
               )}
               {rows.slice(0, 500).map((r) => {
-                const ach = Number(r.plan_qty) ? (Number(r.actual_qty) / Number(r.plan_qty)) * 100 : 0;
+                const ach = Number(r.plan_qty)
+                  ? (Number(r.actual_qty) / Number(r.plan_qty)) * 100
+                  : 0;
                 return (
                   <TableRow key={r.id}>
                     <TableCell className="num">{r.prod_date}</TableCell>
                     <TableCell>{r.shift}</TableCell>
-                    <TableCell>{name(master.data?.lines, r.line_id)}</TableCell>
-                    <TableCell>{name(master.data?.products, r.product_id)}</TableCell>
+                    <TableCell>{findName(master.data?.lines, r.line_id)}</TableCell>
+                    <TableCell>{findName(master.data?.products, r.product_id)}</TableCell>
                     <TableCell className="num text-right">{fmt(Number(r.plan_qty))}</TableCell>
                     <TableCell className="num text-right">{fmt(Number(r.actual_qty))}</TableCell>
                     <TableCell className="num text-right">{fmt(Number(r.good_qty))}</TableCell>
@@ -198,19 +212,18 @@ function NewRecordDialog() {
       const actual = Number(form.actual_qty);
       const defect = Number(form.defect_qty);
       const reject = Number(form.reject_qty);
-      const { error } = await supabase.from("production_records").insert({
+      addLocalProductionRecord({
         prod_date: form.prod_date,
         shift: form.shift,
         plant_id: line.plant_id,
         line_id: line.id,
+        machine_id: null,
         product_id: form.product_id,
         plan_qty: Number(form.plan_qty),
         actual_qty: actual,
-        good_qty: Math.max(actual - defect - reject, 0),
         defect_qty: defect,
         reject_qty: reject,
       });
-      if (error) throw error;
     },
     onSuccess: () => {
       toast.success("บันทึกข้อมูลการผลิตแล้ว");
@@ -236,7 +249,11 @@ function NewRecordDialog() {
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label>วันที่ผลิต</Label>
-            <Input type="date" value={form.prod_date} onChange={(e) => set({ prod_date: e.target.value })} />
+            <Input
+              type="date"
+              value={form.prod_date}
+              onChange={(e) => set({ prod_date: e.target.value })}
+            />
           </div>
           <div className="space-y-1.5">
             <Label>กะ</Label>
@@ -283,19 +300,35 @@ function NewRecordDialog() {
           </div>
           <div className="space-y-1.5">
             <Label>แผนการผลิต</Label>
-            <Input type="number" value={form.plan_qty} onChange={(e) => set({ plan_qty: e.target.value })} />
+            <Input
+              type="number"
+              value={form.plan_qty}
+              onChange={(e) => set({ plan_qty: e.target.value })}
+            />
           </div>
           <div className="space-y-1.5">
             <Label>ผลผลิตจริง</Label>
-            <Input type="number" value={form.actual_qty} onChange={(e) => set({ actual_qty: e.target.value })} />
+            <Input
+              type="number"
+              value={form.actual_qty}
+              onChange={(e) => set({ actual_qty: e.target.value })}
+            />
           </div>
           <div className="space-y-1.5">
             <Label>ของเสีย</Label>
-            <Input type="number" value={form.defect_qty} onChange={(e) => set({ defect_qty: e.target.value })} />
+            <Input
+              type="number"
+              value={form.defect_qty}
+              onChange={(e) => set({ defect_qty: e.target.value })}
+            />
           </div>
           <div className="space-y-1.5">
             <Label>Reject</Label>
-            <Input type="number" value={form.reject_qty} onChange={(e) => set({ reject_qty: e.target.value })} />
+            <Input
+              type="number"
+              value={form.reject_qty}
+              onChange={(e) => set({ reject_qty: e.target.value })}
+            />
           </div>
         </div>
         <DialogFooter>

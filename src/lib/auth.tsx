@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import type { Session } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
+import {
+  getLocalSession,
+  subscribeLocalAuth,
+  type AppRole,
+  type LocalSession,
+} from "@/lib/local-auth";
 
-export type AppRole = "admin" | "manager" | "supervisor" | "quality" | "viewer";
+export type { AppRole } from "@/lib/local-auth";
 
 export const ROLE_LABEL: Record<AppRole, string> = {
   admin: "ผู้ดูแลระบบ",
@@ -14,49 +17,26 @@ export const ROLE_LABEL: Record<AppRole, string> = {
 };
 
 export function useSession() {
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [session, setSession] = useState<LocalSession | null>(() => getLocalSession());
 
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
-      setSession(s);
-      setLoading(false);
-    });
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setLoading(false);
-    });
-    return () => sub.subscription.unsubscribe();
+    setSession(getLocalSession());
+    return subscribeLocalAuth(() => setSession(getLocalSession()));
   }, []);
 
-  return { session, loading };
+  return { session, loading: false };
 }
 
 export function useCurrentUser() {
   const { session, loading } = useSession();
-  const userId = session?.user.id;
+  const user = session?.user;
 
-  const profile = useQuery({
-    queryKey: ["me", userId],
-    enabled: !!userId,
-    queryFn: async () => {
-      const [{ data: prof }, { data: roles }] = await Promise.all([
-        supabase.from("profiles").select("*").eq("id", userId!).maybeSingle(),
-        supabase.from("user_roles").select("role").eq("user_id", userId!),
-      ]);
-      return {
-        profile: prof,
-        roles: (roles ?? []).map((r) => r.role as AppRole),
-      };
-    },
-  });
-
-  const roles = profile.data?.roles ?? [];
+  const roles = user?.roles ?? [];
   return {
     session,
-    loading: loading || profile.isLoading,
-    email: session?.user.email ?? "",
-    name: profile.data?.profile?.full_name ?? session?.user.email?.split("@")[0] ?? "",
+    loading,
+    email: user?.email ?? "",
+    name: user?.full_name ?? user?.email.split("@")[0] ?? "",
     roles,
     hasRole: (r: AppRole) => roles.includes(r),
     canEdit: roles.some((r) => r === "admin" || r === "manager" || r === "supervisor"),

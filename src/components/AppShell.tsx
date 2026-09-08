@@ -12,8 +12,8 @@ import {
   Menu,
   X,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser, ROLE_LABEL } from "@/lib/auth";
+import { signOutLocal } from "@/lib/local-auth";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -46,7 +46,7 @@ export function AppShell({
   async function signOut() {
     await queryClient.cancelQueries();
     queryClient.clear();
-    await supabase.auth.signOut();
+    await signOutLocal();
     navigate({ to: "/auth", replace: true });
   }
 
