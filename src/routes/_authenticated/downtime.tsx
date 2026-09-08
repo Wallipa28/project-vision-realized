@@ -1,14 +1,6 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { AppShell } from "@/components/AppShell";
 import { FilterBar } from "@/components/FilterBar";
 import { ExportMenu } from "@/components/ExportMenu";
@@ -35,14 +27,15 @@ export const Route = createFileRoute("/_authenticated/downtime")({
   component: DowntimePage,
 });
 
+function findName(list: { id: string; name: string }[] | undefined, id: string | null) {
+  return list?.find((item) => item.id === id)?.name ?? "-";
+}
+
 function DowntimePage() {
   const [filters, setFilters] = useState(defaultFilters());
   const master = useMasterData();
   const down = useDowntime(filters);
-  const rows = down.data ?? [];
-
-  const name = (list: { id: string; name: string }[] | undefined, id: string | null) =>
-    list?.find((x) => x.id === id)?.name ?? "-";
+  const rows = useMemo(() => down.data ?? [], [down.data]);
 
   const total = rows.reduce((s, r) => s + r.duration_min, 0);
   const mttr = rows.length ? total / rows.length : 0;
@@ -61,18 +54,17 @@ function DowntimePage() {
     const g = groupBy(rows, (r) => r.machine_id ?? "-");
     return [...g.entries()]
       .map(([id, list]) => ({
-        machine: name(master.data?.machines, id),
+        machine: findName(master.data?.machines, id),
         minutes: list.reduce((s, r) => s + r.duration_min, 0),
         count: list.length,
       }))
       .sort((a, b) => b.minutes - a.minutes);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rows, master.data]);
 
   const exportData = rows.map((r) => ({
     วันที่: r.prod_date,
-    ไลน์ผลิต: name(master.data?.lines, r.line_id),
-    เครื่องจักร: name(master.data?.machines, r.machine_id),
+    ไลน์ผลิต: findName(master.data?.lines, r.line_id),
+    เครื่องจักร: findName(master.data?.machines, r.machine_id),
     เวลาเริ่ม: new Date(r.start_time).toLocaleString("th-TH"),
     เวลาสิ้นสุด: new Date(r.end_time).toLocaleString("th-TH"),
     "ระยะเวลา (นาที)": r.duration_min,
@@ -86,12 +78,22 @@ function DowntimePage() {
       description="เวลาหยุดเครื่องแยกตามเครื่องจักร ไลน์ผลิต และสาเหตุ"
       actions={<ExportMenu rows={exportData} fileName="รายงาน Downtime" />}
     >
-      <FilterBar filters={filters} onChange={setFilters} master={master.data} showShift={false} showProduct={false} />
+      <FilterBar filters={filters} onChange={setFilters} master={master.data} showProduct={false} />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <KpiCard label="Downtime รวม" value={fmt(Math.round(total / 60))} unit="ชม." hint={`${fmt(total)} นาที`} />
+        <KpiCard
+          label="Downtime รวม"
+          value={fmt(Math.round(total / 60))}
+          unit="ชม."
+          hint={`${fmt(total)} นาที`}
+        />
         <KpiCard label="จำนวนเหตุการณ์" value={fmt(rows.length)} unit="ครั้ง" />
-        <KpiCard label="MTTR เฉลี่ย" value={fmt(mttr, 1)} unit="นาที/ครั้ง" tone={mttr > 60 ? "bad" : "neutral"} />
+        <KpiCard
+          label="MTTR เฉลี่ย"
+          value={fmt(mttr, 1)}
+          unit="นาที/ครั้ง"
+          tone={mttr > 60 ? "bad" : "neutral"}
+        />
         <KpiCard
           label="สาเหตุอันดับ 1"
           value={byCause[0]?.category ?? "-"}
@@ -114,7 +116,12 @@ function DowntimePage() {
                   borderRadius: 8,
                 }}
               />
-              <Bar dataKey="minutes" name="นาที" fill="var(--color-chart-4)" radius={[0, 4, 4, 0]} />
+              <Bar
+                dataKey="minutes"
+                name="นาที"
+                fill="var(--color-chart-4)"
+                radius={[0, 4, 4, 0]}
+              />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -133,7 +140,12 @@ function DowntimePage() {
                   borderRadius: 8,
                 }}
               />
-              <Bar dataKey="minutes" name="นาที" fill="var(--color-chart-1)" radius={[4, 4, 0, 0]} />
+              <Bar
+                dataKey="minutes"
+                name="นาที"
+                fill="var(--color-chart-1)"
+                radius={[4, 4, 0, 0]}
+              />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -171,7 +183,9 @@ function DowntimePage() {
                   <TableCell>{name(master.data?.machines, r.machine_id)}</TableCell>
                   <TableCell>{r.category}</TableCell>
                   <TableCell className="text-muted-foreground">{r.cause}</TableCell>
-                  <TableCell className="num text-right font-medium">{fmt(r.duration_min)}</TableCell>
+                  <TableCell className="num text-right font-medium">
+                    {fmt(r.duration_min)}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

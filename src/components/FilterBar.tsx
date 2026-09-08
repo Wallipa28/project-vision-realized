@@ -15,13 +15,11 @@ export function FilterBar({
   filters,
   onChange,
   master,
-  showShift = true,
   showProduct = true,
 }: {
   filters: Filters;
   onChange: (f: Filters) => void;
   master?: MasterData;
-  showShift?: boolean;
   showProduct?: boolean;
 }) {
   const set = (patch: Partial<Filters>) => onChange({ ...filters, ...patch });
@@ -47,22 +45,6 @@ export function FilterBar({
           className="w-40"
         />
       </Field>
-
-      {showShift && (
-        <Field label="กะการผลิต">
-          <Select value={filters.shift} onValueChange={(v) => set({ shift: v })}>
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL}>ทุกกะ</SelectItem>
-              <SelectItem value="A">กะ A</SelectItem>
-              <SelectItem value="B">กะ B</SelectItem>
-              <SelectItem value="C">กะ C</SelectItem>
-            </SelectContent>
-          </Select>
-        </Field>
-      )}
 
       <Field label="โรงงาน">
         <Select value={filters.plantId} onValueChange={(v) => set({ plantId: v, lineId: ALL })}>
