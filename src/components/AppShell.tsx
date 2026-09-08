@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   LayoutDashboard,
   Factory,
+  Plus,
   ShieldCheck,
   TimerOff,
   Upload,
@@ -20,6 +21,7 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { to: "/dashboard", label: "ภาพรวมผู้บริหาร", icon: LayoutDashboard },
   { to: "/production", label: "ข้อมูลการผลิต", icon: Factory },
+  { to: "/production", label: "ลงข้อมูลการผลิต", icon: Plus },
   { to: "/downtime", label: "Downtime", icon: TimerOff },
   { to: "/quality", label: "คุณภาพ / ของเสีย", icon: ShieldCheck },
   { to: "/import", label: "นำเข้าข้อมูล", icon: Upload },
@@ -75,7 +77,7 @@ export function AppShell({
             const active = pathname.startsWith(item.to);
             return (
               <Link
-                key={item.to}
+                key={`${item.to}-${item.label}`}
                 to={item.to}
                 onClick={() => setOpen(false)}
                 className={cn(
