@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils";
 
 const NAV = [
   { to: "/dashboard", label: "ภาพรวมผู้บริหาร", icon: LayoutDashboard },
-  { to: "/production", label: "รายงานการผลิต", icon: Factory },
+  { to: "/production", label: "ข้อมูลการผลิต", icon: Factory },
   { to: "/downtime", label: "Downtime", icon: TimerOff },
   { to: "/quality", label: "คุณภาพ / ของเสีย", icon: ShieldCheck },
   { to: "/import", label: "นำเข้าข้อมูล", icon: Upload },
